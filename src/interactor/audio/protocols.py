@@ -1,0 +1,9 @@
+from typing import Protocol, Callable
+from numpy.typing import NDArray
+
+class AudioInput(Protocol):
+    sample_rate: int
+    samples_captured: int
+    def start(self) -> None: ...
+    def stop(self) -> None: ...
+    def subscribe_frames(self, cb: Callable[[NDArray["float32"]], None]) -> None: ...
