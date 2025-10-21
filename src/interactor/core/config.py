@@ -1,5 +1,6 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator, ValidationError
+
 
 class Settings(BaseSettings):
     sample_rate: int = 48000
