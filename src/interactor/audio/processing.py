@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Tuple
 
 import numpy as np
 from numpy.fft import rfft, rfftfreq
@@ -12,8 +11,7 @@ class AudioProcessor:
     """
     def __init__(self, settings: Settings):
         self.s = settings
-        self._win_cache: dict[int, np.ndarray] = {}
-        self._win_cache[self.s.buffer_size] = np.hanning(self.s.buffer_size).astype(np.float32)
+        self._win_cache: dict[int, np.ndarray] = {self.s.buffer_size: np.hanning(self.s.buffer_size).astype(np.float32)}
 
     def _hann(self, size: int) -> np.ndarray:
         win = self._win_cache.get(size)
@@ -28,6 +26,7 @@ class AudioProcessor:
         """
         if audio_data.size == 0:
             return 0.0
+
         # Treat near-silence as zero to avoid weird noise flutter
         if float(np.max(np.abs(audio_data))) < self.s.silence_threshold:
             return 0.0
