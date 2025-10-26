@@ -1,9 +1,8 @@
 {
-  "album_id": "XXX",
+  "album_id": "XXX...XXX",
   "album_title": "ALBUM",
   "album_artist": "ARTIST",
-  "copyright": "Music Group YEAR",
-  "release_date": "xxxx-xx-xx",
+  "release_year": "YEAR",
   "album_cover": "cover.jpg",
   "disc_total": 1,
   "track_total": 1,
@@ -11,12 +10,13 @@
     {
       "track_title": "A",
       "track_artist": "ARTIST",
-      "featuring": [],
       "composer": [],
       "lyricist": [],
       "disc": 1,
       "track": 1,
       "isrc": "x",
+      "copyright": "MUSIC GROUP",
+      "release_date": "YYYY-MM-DD",
       "explicit": 0,
       "lyrics": "01. ARTIST - A.lrc",
       "alt_art": []
