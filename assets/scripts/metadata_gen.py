@@ -27,7 +27,6 @@ def run_gen():
                 "album_title": folder_name[1],
                 "album_artist": folder_name[0],
                 "release_year": folder_name[2],
-                "album_cover": str(subfolder / "cover.jpg"),
                 "disc_total": 1,
                 "track_total": 1,
                 "tracks": []
@@ -39,14 +38,15 @@ def run_gen():
 
                     track = {
                         "track_title": audio["TITLE"][0],
-                        "track_artist": audio["ARTIST"][0],
-                        "composer": audio["COMPOSER"][0],
-                        "lyricist": audio["LYRICIST"][0],
-                        "disc": audio["DISCNUMBER"][0].split("/")[0],
-                        "track": audio["TRACKNUMBER"][0].split("/")[0],
+                        "track_artist": convert_delimited_to_array(audio["ARTIST"][0]),
+                        "composer": convert_delimited_to_array(audio["COMPOSER"][0]),
+                        "lyricist": convert_delimited_to_array(audio["LYRICIST"][0]),
+                        "disc": int(audio["DISCNUMBER"][0].split("/")[0]),
+                        "track": int(audio["TRACKNUMBER"][0].split("/")[0]),
                         "isrc": audio["ISRC"][0],
                         "copyright": audio["COPYRIGHT"][0],
                         "release_date": audio["DATE"][0],
+                        "duration": audio.info.length,
                         "explicit": explicit_flag(audio),
                         "lyrics": str(file.with_suffix('.lrc')),
                         "alt_art": [] # TODO FIGURE OUT LATER (HOLDS PATH STRS?)
@@ -90,7 +90,11 @@ def split_name(subfolder: str) -> tuple[str, str, str]:
 
     raise ValueError(f'Cannot parse {subfolder!r}')
 
-def explicit_flag(track: FLAC):
+def convert_delimited_to_array(names: str) -> list[str]:
+    """ Convert the semicolon-delimited names into an array """
+    return [name.strip() for name in names.split(';')]
+
+def explicit_flag(track: FLAC) -> int:
     try:
         if track["RATING"][0] == "Explicit":
             return 1

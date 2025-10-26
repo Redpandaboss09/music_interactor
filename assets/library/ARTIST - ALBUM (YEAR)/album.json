@@ -3,13 +3,12 @@
   "album_title": "ALBUM",
   "album_artist": "ARTIST",
   "release_year": "YEAR",
-  "album_cover": "cover.jpg",
   "disc_total": 1,
   "track_total": 1,
   "tracks": [
     {
       "track_title": "A",
-      "track_artist": "ARTIST",
+      "track_artist": [],
       "composer": [],
       "lyricist": [],
       "disc": 1,
@@ -17,6 +16,7 @@
       "isrc": "x",
       "copyright": "MUSIC GROUP",
       "release_date": "YYYY-MM-DD",
+      "duration": 0.0,
       "explicit": 0,
       "lyrics": "01. ARTIST - A.lrc",
       "alt_art": []
