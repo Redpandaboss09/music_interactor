@@ -3,6 +3,9 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
+def _repo_root():
+    here = Path(__file__).resolve()
+    return here.parents[3] if len(here.parents) >= 4 else here.parent
 
 class Settings(BaseSettings):
     assets_dir: Path = Path('assets/library')
@@ -14,25 +17,27 @@ class Settings(BaseSettings):
     silence_threshold: float = 0.001
 
     @classmethod
-    def from_file(cls, primary="settings.toml", override="settings.local.toml"):
+    def from_file(cls,
+                  primary: str | Path ="settings.toml",
+                  override: str | Path = "settings.local.toml") -> "Settings":
         import tomllib
-        base = {}
-        ov = {}
-        path = Path(primary)
-        overridden = Path(override)
-        if path.exists():
-            base = tomllib.loads(path.read_text("utf-8"))
-        if overridden.exists():
-            ov = tomllib.loads(overridden.read_text("utf-8"))
-        return cls(**{**base, **ov})
+        repo = _repo_root()
+
+        def load(path: Path) -> dict:
+            return tomllib.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+        base = load(repo / primary)
+        overrider = load(repo / override)
+
+        return cls(**{**base, **overrider})
 
     @field_validator("assets_dir", mode="before")
     @classmethod
     def _normalize_assets_dir(cls, v):
         path = Path(v).expanduser()
-        here = Path(__file__).resolve()
-        repo = here.parents[3] if len(here.parents) >= 4 else here.parent
-        return (repo / path).resolve() if not path.is_absolute() else path
+        if path.is_absolute():
+            return path
+        return (_repo_root() / path).resolve()
 
     @field_validator('sample_rate')
     @classmethod

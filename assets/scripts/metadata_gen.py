@@ -5,8 +5,9 @@ import re
 import warnings
 import json
 
-# TODO SWITCH CONFIG STYLE TO ALLOW BETTER CHANGE
-rootdir = Path('../library/')
+from src.interactor.core.config import Settings
+
+rootdir = Path(Settings.from_file('settings.local.toml').assets_dir)
 
 def run_gen():
     for subfolder in rootdir.iterdir():
