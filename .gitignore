@@ -32,10 +32,17 @@ out/
 
 .idea
 
-# Ignore everything in assets
+# Ignore everything under assets
 /assets/**
 
+# Keep the assets folder itself
 !/assets/
+
+# Allow these folders
 !/assets/scripts/
 !/assets/library/
 !/assets/library/ARTIST - ALBUM (YEAR)/**
+
+# Ensure we reinclude subpaths of scripts and library
+!/assets/scripts/**
+!/assets/library/**

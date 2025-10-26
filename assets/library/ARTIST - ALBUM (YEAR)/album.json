@@ -1,0 +1,25 @@
+{
+  "album_id": "XXX",
+  "album_title": "ALBUM",
+  "album_artist": "ARTIST",
+  "copyright": "Music Group YEAR",
+  "release_date": "xxxx-xx-xx",
+  "album_cover": "cover.jpg",
+  "disc_total": 1,
+  "track_total": 1,
+  "tracks": [
+    {
+      "track_title": "A",
+      "track_artist": "ARTIST",
+      "featuring": [],
+      "composer": [],
+      "lyricist": [],
+      "disc": 1,
+      "track": 1,
+      "isrc": "x",
+      "explicit": 0,
+      "lyrics": "01. ARTIST - A.lrc",
+      "alt_art": []
+    }
+  ]
+}
