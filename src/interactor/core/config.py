@@ -1,8 +1,11 @@
+from pathlib import Path
+
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    assets_dir: Path = Path('assets/library')
     sample_rate: int = 48000
     blocksize: int = 512
     buffer_size: int = 2048
@@ -10,7 +13,26 @@ class Settings(BaseSettings):
     noise_floor_db: float = -60.0
     silence_threshold: float = 0.001
 
-    model_config = SettingsConfigDict(env_file='.env', env_prefix='INTERACTOR_')
+    @classmethod
+    def from_file(cls, primary="settings.toml", override="settings.local.toml"):
+        import tomllib
+        base = {}
+        ov = {}
+        path = Path(primary)
+        overridden = Path(override)
+        if path.exists():
+            base = tomllib.loads(path.read_text("utf-8"))
+        if overridden.exists():
+            ov = tomllib.loads(overridden.read_text("utf-8"))
+        return cls(**{**base, **ov})
+
+    @field_validator("assets_dir", mode="before")
+    @classmethod
+    def _normalize_assets_dir(cls, v):
+        path = Path(v).expanduser()
+        here = Path(__file__).resolve()
+        repo = here.parents[3] if len(here.parents) >= 4 else here.parent
+        return (repo / path).resolve() if not path.is_absolute() else path
 
     @field_validator('sample_rate')
     @classmethod

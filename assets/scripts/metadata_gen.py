@@ -48,7 +48,7 @@ def run_gen():
                         "release_date": audio["DATE"][0],
                         "duration": audio.info.length,
                         "explicit": explicit_flag(audio),
-                        "lyrics": str(file.with_suffix('.lrc')),
+                        "lyrics": file.with_suffix('.lrc').name.replace('\\', '/'),
                         "alt_art": [] # TODO FIGURE OUT LATER (HOLDS PATH STRS?)
                     }
 

@@ -1,0 +1,12 @@
+# paths
+assets_dir = "assets/library"
+
+# audio
+sample_rate = 48000
+blocksize = 512
+buffer_size = 2048
+audio_device_index = 0 # Change this depending on your device
+
+# visualization
+noise_floor_db = -60.0
+silence_threshold = 0.001
