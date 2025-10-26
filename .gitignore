@@ -32,7 +32,10 @@ out/
 
 .idea
 
-# Assets
+# Ignore everything in assets
 /assets/**
-!/assets/scripts
+
+!/assets/
+!/assets/scripts/
+!/assets/library/
 !/assets/library/ARTIST - ALBUM (YEAR)/**
