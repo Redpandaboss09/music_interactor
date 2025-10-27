@@ -2,7 +2,6 @@ from pathlib import Path
 import json
 from src.interactor.core.config import Settings
 from .models import Album, Track
-from .lyrics import LRC
 
 class MediaService:
     def __init__(self, settings: Settings):
