@@ -18,7 +18,7 @@ def run_gen():
 
             folder_name = str(subfolder.name)
             try:
-                folder_name = split_name(folder_name)
+                folder_name = _split_name(folder_name)
             except ValueError:
                 continue
 
@@ -30,7 +30,8 @@ def run_gen():
                 "release_year": folder_name[2],
                 "disc_total": 1,
                 "track_total": 1,
-                "tracks": []
+                "tracks": [],
+                "alt_art": _find_alt_artwork(subfolder)
             }
 
             for file in subfolder.iterdir():
@@ -39,18 +40,18 @@ def run_gen():
 
                     track = {
                         "track_title": audio["TITLE"][0],
-                        "track_artist": convert_delimited_to_array(audio["ARTIST"][0]),
-                        "composer": convert_delimited_to_array(audio["COMPOSER"][0]),
-                        "lyricist": convert_delimited_to_array(audio["LYRICIST"][0]),
+                        "track_artist": _convert_delimited_to_array(audio["ARTIST"][0]),
+                        "composer": _convert_delimited_to_array(audio["COMPOSER"][0]),
+                        "lyricist": _convert_delimited_to_array(audio["LYRICIST"][0]),
                         "disc": int(audio["DISCNUMBER"][0].split("/")[0]),
                         "track": int(audio["TRACKNUMBER"][0].split("/")[0]),
                         "isrc": audio["ISRC"][0],
                         "copyright": audio["COPYRIGHT"][0],
                         "release_date": audio["DATE"][0],
                         "duration": audio.info.length,
-                        "explicit": explicit_flag(audio),
+                        "explicit": _explicit_flag(audio),
                         "lyrics": file.with_suffix('.lrc').name.replace('\\', '/'),
-                        "alt_art": [] # TODO FIGURE OUT LATER (HOLDS PATH STRS?)
+                        "alt_art_track": [] # TODO FIGURE OUT LATER (HOLDS PATH STRS?)
                     }
 
                     album["tracks"].append(track)
@@ -63,7 +64,7 @@ def run_gen():
             full_path = subfolder / 'album.json'
             full_path.write_text(json.dumps(album, indent=4, ensure_ascii=False), encoding="utf-8")
 
-def split_name(subfolder: str) -> tuple[str, str, str]:
+def _split_name(subfolder: str) -> tuple[str, str, str]:
     """
     Returns the folder name as a split up tuple, where either of two regex instructions are used:
         regex_year: Split first by finding (YEAR) so we can safely look through rest without worrying about the end
@@ -91,16 +92,32 @@ def split_name(subfolder: str) -> tuple[str, str, str]:
 
     raise ValueError(f'Cannot parse {subfolder!r}')
 
-def convert_delimited_to_array(names: str) -> list[str]:
+def _convert_delimited_to_array(names: str) -> list[str]:
     """ Convert the semicolon-delimited names into an array """
-    return [name.strip() for name in names.split(';')]
+    try:
+        return [name.strip() for name in names.split(';')]
+    except KeyError:
+        warnings.warn(f'No semicolon-delimited names found in {names!r}')
+        return []
 
-def explicit_flag(track: FLAC) -> int:
+def _explicit_flag(track: FLAC) -> int:
+    """ Set the flag as 1 if Explicit tag is there """
     try:
         if track["RATING"][0] == "Explicit":
             return 1
     except KeyError:
         return 0
+
+def _find_alt_artwork(folder: Path) -> list[str] | None:
+    """ Grabs all alternate artwork files for an album (like animated covers). """
+    alt_artwork = folder / 'alt_art'
+    all_art = []
+    if alt_artwork.exists():
+        for file in alt_artwork.iterdir():
+            all_art.append(file.name)
+        return all_art
+    else:
+        return None
 
 if __name__ == '__main__':
     run_gen()

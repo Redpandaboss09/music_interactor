@@ -9,6 +9,7 @@ class MediaService:
         self.assets_root = Path(settings.assets_dir)
 
     def list_albums(self) -> list[Path]:
+        """ Loads all albums """
         root = self.assets_root
         if not root.exists():
             return []
