@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from mutagen.flac import FLAC
 from pathlib import Path
 from ulid import ULID
@@ -40,9 +42,9 @@ def run_gen():
 
                     track = {
                         "track_title": audio["TITLE"][0],
-                        "track_artist": _convert_delimited_to_array(audio["ARTIST"][0]),
-                        "composer": _convert_delimited_to_array(audio["COMPOSER"][0]),
-                        "lyricist": _convert_delimited_to_array(audio["LYRICIST"][0]),
+                        "track_artist": _delim_to_arr(audio["ARTIST"][0]),
+                        "composer": _delim_to_arr(_safe_tag(audio, "COMPOSER")),
+                        "lyricist": _delim_to_arr(_safe_tag(audio, "LYRICIST")),
                         "disc": int(audio["DISCNUMBER"][0].split("/")[0]),
                         "track": int(audio["TRACKNUMBER"][0].split("/")[0]),
                         "isrc": audio["ISRC"][0],
@@ -51,7 +53,7 @@ def run_gen():
                         "duration": audio.info.length,
                         "explicit": _explicit_flag(audio),
                         "lyrics": file.with_suffix('.lrc').name.replace('\\', '/'),
-                        "alt_art_track": [] # TODO FIGURE OUT LATER (HOLDS PATH STRS?)
+                        "alt_art_track": album['alt_art'].get(file.stem, []) if album['alt_art'] else []
                     }
 
                     album["tracks"].append(track)
@@ -92,7 +94,11 @@ def _split_name(subfolder: str) -> tuple[str, str, str]:
 
     raise ValueError(f'Cannot parse {subfolder!r}')
 
-def _convert_delimited_to_array(names: str) -> list[str]:
+def _safe_tag(audio: FLAC, tag, fallback_key="ARTIST"):
+    """ Safely get a tag, falling back to given default if missing. """
+    return audio.get(tag, [audio[fallback_key][0]])[0]
+
+def _delim_to_arr(names: str) -> list[str]:
     """ Convert the semicolon-delimited names into an array """
     try:
         return [name.strip() for name in names.split(';')]
@@ -108,16 +114,27 @@ def _explicit_flag(track: FLAC) -> int:
     except KeyError:
         return 0
 
-def _find_alt_artwork(folder: Path) -> list[str] | None:
+def _find_alt_artwork(folder: Path) -> dict | None:
     """ Grabs all alternate artwork files for an album (like animated covers). """
     alt_artwork = folder / 'alt_art'
-    all_art = []
-    if alt_artwork.exists():
-        for file in alt_artwork.iterdir():
-            all_art.append(file.name)
-        return all_art
-    else:
+    if not alt_artwork.exists():
         return None
+
+    all_art = defaultdict(list)
+
+    for file in alt_artwork.iterdir():
+        if file.is_file():
+            if file.name == 'album.mp4':
+                all_art['animated_cover'] = file.name
+            else:
+                key = file.stem
+                all_art[key].append(file.name)
+
+    return dict(all_art)
 
 if __name__ == '__main__':
     run_gen()
+    """
+    audio = FLAC('../library/Brent Faiyaz - Fuck The World (2020)/01. Brent Faiyaz - Skyline.flac')
+    print(audio.pprint())
+    """
