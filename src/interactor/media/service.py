@@ -20,6 +20,9 @@ class MediaService:
             return
 
         for album_dir in root.iterdir():
+            if album_dir.name == "ARTIST - ALBUM (YEAR)":
+                continue
+
             j = album_dir / "album.json"
             if not j.exists():
                 continue
@@ -84,3 +87,6 @@ class MediaService:
         album_dir = Path(album_dir)
         path = album_dir / 'cover.jpg'
         return path if path.exists() else None
+
+    def get_id_to_dir_keys(self):
+        return self._id_to_dir.keys()

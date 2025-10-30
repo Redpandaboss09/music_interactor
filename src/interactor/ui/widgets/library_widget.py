@@ -32,15 +32,23 @@ class LibraryWidget(QWidget):
         QScroller.grabGesture(self.view.viewport(), QScroller.LeftMouseButtonGesture)
 
         self.view.activated.connect(self._emit_selection)
+
         self._tileW = 180
         self._tileH = 220
+        self.view.setIconSize(QSize(self._tileW, self._tileH))
+        self.view.setGridSize(QSize(self._tileW + 20, self._tileH))
+
+        self.view.setWordWrap(True)
+        self.view.setTextElideMode(Qt.ElideRight)
+        self.view.setSpacing(18)
+
         self._update_grid_size()
 
     def set_model(self, model):
         self.view.setModel(model)
 
     def _emit_selection(self, index):
-        album_id = index.data(Qt.UserRole + 1)
+        album_id = index.data(Qt.UserRole + 2) # Id Role
         if not album_id:
             album_id = index.data(Qt.DisplayRole)
         if album_id:

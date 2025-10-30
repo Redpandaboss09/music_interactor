@@ -3,6 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractListModel, Qt, QModelIndex, QByteArray
+from PySide6.QtGui import QIcon, QPixmap
 from ...media.service import MediaService
 
 class Roles:
@@ -15,6 +16,7 @@ class AlbumListModel(QAbstractListModel):
         super().__init__(parent)
         self.service = media_service
         self._dirs: list[Path] = []
+        self._icon_cache: dict[Path, QIcon] = {}
 
     def roleNames(self):
         return {
@@ -34,14 +36,24 @@ class AlbumListModel(QAbstractListModel):
         album_dir = self._dirs[index.row()]
         meta = _peek_album_meta(album_dir)
 
+        if role == Qt.DecorationRole:
+            cover = _find_cover(album_dir)
+            if cover:
+                icon = self._icon_cache.get(cover)
+                if icon is None:
+                    pm = QPixmap(cover)
+                    pm = pm.scaledToHeight(180, Qt.SmoothTransformation)
+                    icon = QIcon(pm)
+                    self._icon_cache[cover] = icon
+                return icon
+            return None
+
         if role in (Qt.DisplayRole, Roles.TitleRole):
             return meta.get("album_title") or album_dir.name
         if role == Roles.IdRole:
             return meta.get("album_id")
         if role == Roles.DirRole:
             return str(album_dir)
-
-        # TODO CoverPath?
 
         return None
 
@@ -51,7 +63,9 @@ class AlbumListModel(QAbstractListModel):
         self.endResetModel()
 
     def album_id_at(self, row: int) -> str | None:
-        return self._albums[row]["album_id"] if 0 <= row < len(self._albums) else None
+        if 0 <= row < len(self._dirs):
+            return _peek_album_meta(self._dirs[row].get("album_id"))
+        return None
 
 @lru_cache(maxsize=512)
 def _peek_album_meta(album_dir: Path) -> dict:
@@ -64,3 +78,9 @@ def _peek_album_meta(album_dir: Path) -> dict:
         }
     except Exception:
         return {"album_id": None, "album_title": album_dir.name}
+
+def _find_cover(album_dir: Path) -> Path | None:
+    path = album_dir / "cover.jpg"
+    if path.exists():
+        return path
+    return None

@@ -1,7 +1,7 @@
 import random
-from PySide6.QtCore import Signal, Qt, QSize
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 
 from ...media.service import MediaService
 
@@ -13,29 +13,34 @@ class HeroWidget(QWidget):
         self.service = MediaService(settings)
         self._current_id: str | None = None
 
-        layout = QVBoxLayout(self)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.setSpacing(16)
 
-        self.cover = QLabel(self)
-        self.cover.setAlignment(Qt.AlignCenter)
-        self.cover.setMinimumHeight(180)
+        # Album art side (left)
+        self.open_button = QPushButton()
+        self.open_button.clicked.connect(self._emit_open)
+        row.addWidget(self.open_button, 0, Qt.AlignLeft | Qt.AlignVCenter)
+
+        # Small info blurb (right)
+        info_col = QVBoxLayout()
+        info_col.setSpacing(8)
 
         self.title = QLabel("")
-        self.title.setAlignment(Qt.AlignCenter)
         self.title.setProperty("h1", True)
+        self.title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
-        self.open_button = QPushButton("Open")
+        info_col.addStretch()
+        info_col.addWidget(self.title, 0, Qt.AlignLeft)
+        info_col.addStretch()
 
-        self.open_button.clicked.connect(self._emit_open)
-
-        layout.addWidget(self.cover)
-        layout.addWidget(self.title)
-        layout.addWidget(self.open_button, 0, Qt.AlignCenter)
+        row.addLayout(info_col, 1)
 
         self.refresh_random()
 
     def refresh_random(self):
         """ Pick a random album_id """
-        album_ids = list(self.service._id_to_dir.keys())
+        album_ids = list(self.service.get_id_to_dir_keys())
         if not album_ids:
             self.title.setText("No Albums Found!")
             self.cover.clear()
@@ -53,7 +58,10 @@ class HeroWidget(QWidget):
         if path:
             pm = QPixmap(str(path))
             if not pm.isNull():
-                self.cover.setPixmap(pm.scaledToHeight(180, Qt.SmoothTransformation))
+                pm = pm.scaledToHeight(320, Qt.SmoothTransformation)
+                icon = QIcon(pm)
+                self.open_button.setIcon(icon)
+                self.open_button.setIconSize(pm.size())
 
     def mousePressEvent(self, event):
         self._emit_open()

@@ -1,8 +1,9 @@
-from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListView
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QListView, QSplitter
 from ..models.album_list_model import AlbumListModel
 from ..widgets.hero_widget import HeroWidget
 from ..widgets.library_widget import LibraryWidget
+from ...media.service import MediaService
 
 
 class HomePage(QWidget):
@@ -11,19 +12,29 @@ class HomePage(QWidget):
     def __init__(self, settings, parent=None):
         super().__init__(parent)
         self.settings = settings
+        self.media = MediaService(settings)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(12)
 
+        splitter = QSplitter(Qt.Vertical)
+        layout.addWidget(splitter)
+
         self.hero = HeroWidget(settings)
-        layout.addWidget(self.hero, 7)
-
         self.library = LibraryWidget(title="Library")
-        layout.addWidget(self.library, 3)
 
-        self.model = AlbumListModel(settings)
+        splitter.addWidget(self.hero)
+        splitter.addWidget(self.library)
+
+        splitter.setStretchFactor(0, 6)
+        splitter.setStretchFactor(1, 4)
+        splitter.setOpaqueResize(False)
+        splitter.setSizes([600, 400])
+
+        self.model = AlbumListModel(self.media)
         self.library.set_model(self.model)
+        self.model.load()
 
         self.hero.open_album_requested.connect(self.open_album_requested)
         self.library.album_activated.connect(self.open_album_requested)
