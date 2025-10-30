@@ -8,13 +8,14 @@ class TrackTableModel(QAbstractTableModel):
     def __init__(self, settings, parent=None):
         super().__init__(parent)
         self.settings = settings
+        self.service = MediaService(settings)
         self._tracks = []
         self._album_id = ""
 
     def load_album(self, album_id: str):
         self.beginResetModel()
         self._album_id = album_id
-        self._tracks = MediaService.get_tracks(album_id)
+        self._tracks = self.service.get_album_tracks(album_id)
         self.endResetModel()
 
     # Qt Overrides
