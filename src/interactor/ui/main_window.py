@@ -50,12 +50,12 @@ class MainWindow(QMainWindow):
 
         self.play_requested.connect(self.player.on_play_requested)
 
-def _open_album(self, album_id: str):
-    self.album.load_album(album_id)
-    self.pages.setCurrentIndex(1)
+    def _open_album(self, album_id: str):
+        self.album.load_album(album_id)
+        self.pages.setCurrentIndex(1)
 
-def _back_home(self):
-    self.pages.setCurrentIndex(0)
+    def _back_home(self):
+        self.pages.setCurrentIndex(0)
 
-def _play(self, album_id: str, track_idx: int):
-    self.play_requested.emit(album_id, track_idx)
+    def _play(self, album_id: str, track_idx: int):
+        self.play_requested.emit(album_id, track_idx)

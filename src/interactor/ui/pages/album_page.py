@@ -25,9 +25,9 @@ class AlbumPage(QWidget):
         self.model = TrackTableModel(settings)
         self.table.setModel(self.model)
 
-def load_album(self, album_id: str):
-        self.album_id = album_id
-        self.model.load_album(album_id)
+    def load_album(self, album_id: str):
+            self.album_id = album_id
+            self.model.load_album(album_id)
 
-def _play_row(self, row: int):
-        self.play_requested.emit(self.album_id, row)
+    def _play_row(self, row: int):
+            self.play_requested.emit(self.album_id, row)

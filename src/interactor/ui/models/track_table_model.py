@@ -1,5 +1,6 @@
 from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from ...media.service import MediaService
+from ...media.models import Track
 
 class TrackTableModel(QAbstractTableModel):
     HEADERS = ["#", "Title", "Artist", "Duration", "Explicit"]
@@ -13,10 +14,10 @@ class TrackTableModel(QAbstractTableModel):
     def load_album(self, album_id: str):
         self.beginResetModel()
         self._album_id = album_id
-        # self._tracks = MediaService. # TODO get_album_tracks
-        self._tracks = []
+        self._tracks = MediaService.get_tracks(album_id)
         self.endResetModel()
 
+    # Qt Overrides
     def rowCount(self, parent=QModelIndex()):
         return len(self._tracks)
 
@@ -24,22 +25,24 @@ class TrackTableModel(QAbstractTableModel):
         return len(self.HEADERS)
 
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole.DisplayRole:
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.HEADERS[section]
         return None
 
-    # TODO VERIFY WORKS
     def data(self, index, role):
         if not index.isValid(): return None
 
         track = self._tracks[index.row()]
         column = index.column()
-        if role == Qt.ItemDataRole.DisplayRole:
-            if column == 0: return track["track"]
-            if column == 1: return track["track_title"]
-            if column == 2: return ", ".join(track["track_artist"])
-            if column == 3: return self._fmt(track["duration"])
-            if column == 4: return "E" if track["explicit"] else ""
+        if role == Qt.DisplayRole:
+            if column == 0: return track.track
+            if column == 1: return track.track_title
+            if column == 2: return ", ".join(track.track_artist)
+            if column == 3: return self._fmt(track.duration)
+            if column == 4: return "E" if track.explicit else ""
+        elif role == Qt.TextAlignmentRole:
+            if column in (0, 3, 4):
+                return int(Qt.AlignCenter)
 
         return None
 
@@ -47,3 +50,6 @@ class TrackTableModel(QAbstractTableModel):
     def _fmt(sec: float) -> str:
         m, s = divmod(int(round(sec)), 60)
         return f"{m}:{s:02d}"
+
+    def track_at(self, row: int) -> Track | None:
+        return self._tracks[row] if 0 <= row < len(self._tracks) else None

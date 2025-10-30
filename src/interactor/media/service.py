@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 import json
 from src.interactor.core.config import Settings
@@ -6,14 +7,37 @@ from .models import Album, Track
 class MediaService:
     def __init__(self, settings: Settings):
         self.assets_root = Path(settings.assets_dir)
+        self._id_to_dir: dict[str, Path] = {}
+        self._cache: dict[str, Album] = {}
+
+        self.refresh_index()
+
+    def refresh_index(self) -> None:
+        self._id_to_dir.clear()
+        self._cache.clear()
+        root = self.assets_root
+        if not root.exists():
+            return
+
+        for album_dir in root.iterdir():
+            j = album_dir / "album.json"
+            if not j.exists():
+                continue
+
+            try:
+                data = json.loads(j.read_text(encoding="utf-8"))
+                album_id = data.get("album_id")
+                if album_id:
+                    self._id_to_dir[album_id] = album_dir
+                else:
+                    warnings.warn(f"No album id found in {j}")
+            except Exception as e:
+                warnings.warn(f"Had to skip {j}: {e!r}")
+                continue
 
     def list_albums(self) -> list[Path]:
         """ Loads all albums """
-        root = self.assets_root
-        if not root.exists():
-            return []
-
-        return sorted(p for p in root.iterdir() if (p / 'album.json').exists())
+        return [self._id_to_dir[k] for k in sorted(self._id_to_dir.keys())]
 
     def load_album(self, album_dir: Path) -> Album:
         album_dir = Path(album_dir)
@@ -37,10 +61,26 @@ class MediaService:
 
         return Album.model_validate(data)
 
-    def cover_path(self, album_dir: Path) -> Path | None:
+    def get_album(self, album_id: str) -> Album | None:
+        if album_id in self._cache:
+            return self._cache[album_id]
+
+        album_dir = self._id_to_dir.get(album_id)
+        if not album_dir:
+            return None
+
+        album = self.load_album(album_dir)
+        self._cache[album_id] = album
+        return album
+
+    def get_album_tracks(self, album_id: str) -> list[Track]:
+        album = self.get_album(album_id)
+        return album.sorted_tracks() if album else []
+
+    def cover_path(self, album: str | Path) -> Path | None:
+        album_dir = self._id_to_dir.get(album) if isinstance(album, str) else album
+        if not album_dir:
+            return None
+        album_dir = Path(album_dir)
         path = album_dir / 'cover.jpg'
         return path if path.exists() else None
-
-    def first_track(self, album: Album) -> Track | None:
-        st = album.sorted_tracks()
-        return st[0] if st else None

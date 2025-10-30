@@ -17,7 +17,7 @@ class Track(BaseModel):
     lyrics: str | None = None
     alt_art: list[str] = Field(default_factory=list)
 
-    @field_validator('Explicit', mode='before')
+    @field_validator('explicit', mode='before')
     @classmethod
     def _exp_to_int(cls, v):
         if isinstance(v, bool):
