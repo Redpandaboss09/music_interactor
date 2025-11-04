@@ -40,21 +40,24 @@ def run_gen():
                 if file.is_file() and file.suffix == '.flac':
                     audio = FLAC(file)
 
-                    track = {
-                        "track_title": audio["TITLE"][0],
-                        "track_artist": _delim_to_arr(audio["ARTIST"][0]),
-                        "composer": _delim_to_arr(_safe_tag(audio, "COMPOSER")),
-                        "lyricist": _delim_to_arr(_safe_tag(audio, "LYRICIST")),
-                        "disc": int(audio["DISCNUMBER"][0].split("/")[0]),
-                        "track": int(audio["TRACKNUMBER"][0].split("/")[0]),
-                        "isrc": audio["ISRC"][0],
-                        "copyright": audio["COPYRIGHT"][0],
-                        "release_date": audio["DATE"][0],
-                        "duration": audio.info.length,
-                        "explicit": _explicit_flag(audio),
-                        "lyrics": file.with_suffix('.lrc').name.replace('\\', '/'),
-                        "alt_art_track": album['alt_art'].get(file.stem, []) if album['alt_art'] else []
-                    }
+                    try:
+                        track = {
+                            "track_title": audio["TITLE"][0],
+                            "track_artist": _delim_to_arr(audio["ARTIST"][0]),
+                            "composer": _delim_to_arr(_safe_tag(audio, "COMPOSER")),
+                            "lyricist": _delim_to_arr(_safe_tag(audio, "LYRICIST")),
+                            "disc": int(audio["DISCNUMBER"][0].split("/")[0]),
+                            "track": int(audio["TRACKNUMBER"][0].split("/")[0]),
+                            "isrc": audio["ISRC"][0],
+                            "copyright": audio["COPYRIGHT"][0],
+                            "release_date": audio["DATE"][0],
+                            "duration": audio.info.length,
+                            "explicit": _explicit_flag(audio),
+                            "lyrics": file.with_suffix('.lrc').name.replace('\\', '/'),
+                            "alt_art_track": album['alt_art'].get(file.stem, []) if album['alt_art'] else []
+                        }
+                    except Exception as e:
+                        warnings.warn(f"Issue with {file.name}: {e}")
 
                     album["tracks"].append(track)
 
